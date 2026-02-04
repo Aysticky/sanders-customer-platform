@@ -1,0 +1,25 @@
+# Development environment configuration for Sanders Customer Platform 
+# This configuration file defines AWS resource settings for the dev environment
+
+# The bucket and table names are provisioned via Terraform and 
+# should be updated after infrastructure deployment.
+
+# Data flow:
+# - Raw NYC TLC data is stored under the 's3_prefix_raw' path
+# - Processed feature data is stored under the 's3_prefix_features' path
+# - Daily aggregated customer features are persisted in the DynamoDB table
+
+
+aws_region: eu-west-1
+s3_bucket: sanders-customer-platform-dev
+s3_prefix_raw: raw/nyc_tlc
+s3_prefix_features: features/daily
+ddb_table_daily_features: sanders_daily_customer_features_dev
+
+# Add placeholders for later:
+# stg.yml
+# prod.yml
+
+# Note: Separate configuration files (stg.yml, prod.yml) should be created for
+# staging and production environments following the same structure.
+# you’ll change bucket + table after Terraform
