@@ -1,0 +1,38 @@
+# CI on every PR (lint + tests + basic security)
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install deps
+        run: uv pip install -e ".[dev]"
+
+      - name: Ruff format + lint
+        run: |
+          ruff format .
+          ruff check .
+
+      - name: Run tests
+        run: pytest -q
+
+      - name: Dependency vuln scan
+        run: pip-audit || true
+
+      # You can add Trivy + Gitleaks once we add docker push + secrets store
