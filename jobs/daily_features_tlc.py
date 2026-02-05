@@ -42,7 +42,8 @@ def main():
         raise RuntimeError("Set LOCAL_TLC_PARQUET to the TLC parquet path for now.")
 
     con = duckdb.connect(database=":memory:")
-    con.execute("CREATE VIEW trips AS SELECT * FROM read_parquet(?)", [local_input])
+    # DuckDB doesn't support parameterized CREATE VIEW, use string formatting
+    con.execute(f"CREATE VIEW trips AS SELECT * FROM read_parquet('{local_input}')")
 
     # Choose a stable “entity id” to feature-engineer.
     # TLC has VendorID; we’ll treat it as customer_id for demo.

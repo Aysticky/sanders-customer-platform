@@ -53,4 +53,6 @@ def cli():
     os.environ.setdefault("SCHEDULED_TIME", "")
     run_job(job_path)
 
-# CLI command: scp-run jobs/some_job.py
+# CLI command:
+# export LOCAL_TLC_PARQUET="data/tlc_small.parquet"
+# uv run scp-run jobs/daily_features_tlc.py
