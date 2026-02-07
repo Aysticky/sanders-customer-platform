@@ -60,5 +60,5 @@ htmlcov/
 .env.local
 
 # Reference materials (not part of project)
-maestro-intelligence-batch-main/
 chatgptHistory.txt
+README_sanders-customer-platform-cdk-infra.md
