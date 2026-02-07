@@ -10,7 +10,7 @@
 # - Daily aggregated customer features are persisted in the DynamoDB table
 
 
-aws_region: eu-west-1
+aws_region: eu-central-1
 s3_bucket: sanders-customer-platform-dev
 s3_prefix_raw: raw/nyc_tlc
 s3_prefix_features: features/daily
