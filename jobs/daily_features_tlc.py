@@ -33,18 +33,22 @@ def main():
     date = _scheduled_date()
     log.info("Running daily features for date=%s", date)
 
-    # Read the ingested TLC parquet from your S3 bucket.
-    # DuckDB can read s3:// if creds exist, but simplest is: download via AWS CLI in Batch image later.
-    # For local dev, you can just run after downloading file locally.
-    #
-    # For the first version, we keep it simple: expect a local path mounted or downloaded by the job.
-    local_input = os.getenv("LOCAL_TLC_PARQUET", "")
-    if not local_input:
-        raise RuntimeError("Set LOCAL_TLC_PARQUET to the TLC parquet path for now.")
-
+    # Read TLC parquet - supports both local paths and S3 URIs
+    data_path = os.getenv("TLC_DATA_PATH", "s3://sanders-customer-platform-dev/raw/nyc_tlc/tlc_small.parquet")
+    
+    log.info("Reading TLC data from: %s", data_path)
+    
     con = duckdb.connect(database=":memory:")
+    
+    # Install and load httpfs extension for S3 access
+    if data_path.startswith("s3://"):
+        con.execute("INSTALL httpfs;")
+        con.execute("LOAD httpfs;")
+        # Configure AWS credentials from environment
+        con.execute(f"SET s3_region='{cfg.aws_region}';")
+    
     # DuckDB doesn't support parameterized CREATE VIEW, use string formatting
-    con.execute(f"CREATE VIEW trips AS SELECT * FROM read_parquet('{local_input}')")
+    con.execute(f"CREATE VIEW trips AS SELECT * FROM read_parquet('{data_path}')")
 
     # Choose a stable “entity id” to feature-engineer.
     # TLC has VendorID; we’ll treat it as customer_id for demo.
