@@ -8,6 +8,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 from datetime import datetime
+from decimal import Decimal
 
 from app.config.loader import load_config
 from app.libs.logging import get_logger
@@ -76,8 +77,8 @@ def main():
             "customer_id": row["customer_id"],
             "date": date,
             "trip_count_1d": int(row["trip_count_1d"]),
-            "avg_fare_1d": float(row["avg_fare_1d"]) if row["avg_fare_1d"] is not None else 0.0,
-            "avg_distance_1d": float(row["avg_distance_1d"]) if row["avg_distance_1d"] is not None else 0.0,
+            "avg_fare_1d": Decimal(str(row["avg_fare_1d"])) if row["avg_fare_1d"] is not None else Decimal("0.0"),
+            "avg_distance_1d": Decimal(str(row["avg_distance_1d"])) if row["avg_distance_1d"] is not None else Decimal("0.0"),
         })
     upsert_daily_features(items)
     log.info("Upserted %d feature rows to DynamoDB table=%s", len(items), cfg.ddb_table_daily_features)
