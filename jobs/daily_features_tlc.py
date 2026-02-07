@@ -44,8 +44,11 @@ def main():
     if data_path.startswith("s3://"):
         con.execute("INSTALL httpfs;")
         con.execute("LOAD httpfs;")
-        # Configure AWS credentials from environment
+        # Configure AWS credentials - DuckDB uses boto3 credentials automatically
         con.execute(f"SET s3_region='{cfg.aws_region}';")
+        con.execute("SET s3_use_ssl=true;")
+        # Let DuckDB use AWS credential chain (IAM role, env vars, etc.)
+        con.execute("CALL load_aws_credentials();")
     
     # DuckDB doesn't support parameterized CREATE VIEW, use string formatting
     con.execute(f"CREATE VIEW trips AS SELECT * FROM read_parquet('{data_path}')")

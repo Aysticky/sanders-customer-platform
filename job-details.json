@@ -1,0 +1,95 @@
+{
+    "jobs": [
+        {
+            "jobArn": "arn:aws:batch:eu-central-1:120569615884:job/afa1abec-fb88-400e-b614-532977ed4b21",
+            "jobName": "daily-features-test-1770487433",
+            "jobId": "afa1abec-fb88-400e-b614-532977ed4b21",
+            "jobQueue": "arn:aws:batch:eu-central-1:120569615884:job-queue/sanders-batch-queue-dev",
+            "status": "FAILED",
+            "attempts": [
+                {
+                    "container": {
+                        "taskArn": "arn:aws:ecs:eu-central-1:120569615884:task/sanders-batch-compute-dev_Batch_dae7529d-8f08-3279-9df2-8e1b67b585a9/77e240e5acca41f1a102b5926383d6f4",
+                        "exitCode": 1,
+                        "logStreamName": "sanders-job-8g-dev/default/77e240e5acca41f1a102b5926383d6f4",
+                        "networkInterfaces": [
+                            {
+                                "attachmentId": "60b10440-3292-4e19-b025-43794046ceca",
+                                "privateIpv4Address": "10.0.2.38"
+                            }
+                        ]
+                    },
+                    "startedAt": 1770487471222,
+                    "stoppedAt": 1770487498577,
+                    "statusReason": "Essential container in task exited"
+                }
+            ],
+            "statusReason": "Essential container in task exited",
+            "createdAt": 1770487438242,
+            "startedAt": 1770487471222,
+            "stoppedAt": 1770487498577,
+            "dependsOn": [],
+            "jobDefinition": "arn:aws:batch:eu-central-1:120569615884:job-definition/sanders-job-8g-dev:1",
+            "parameters": {},
+            "container": {
+                "image": "120569615884.dkr.ecr.eu-central-1.amazonaws.com/sanders-customer-platform-dev:latest",
+                "command": [
+                    "jobs/daily_features_tlc.py"
+                ],
+                "jobRoleArn": "arn:aws:iam::120569615884:role/sanders-batch-job-role-dev",
+                "executionRoleArn": "arn:aws:iam::120569615884:role/sanders-ecs-task-execution-role-dev",
+                "volumes": [],
+                "environment": [
+                    {
+                        "name": "TLC_DATA_PATH",
+                        "value": "s3://sanders-customer-platform-dev/raw/nyc_tlc/tlc_small.parquet"
+                    },
+                    {
+                        "name": "SCP_ENV",
+                        "value": "dev"
+                    },
+                    {
+                        "name": "SCHEDULED_TIME",
+                        "value": "2026-02-07T16:00:00Z"
+                    }
+                ],
+                "mountPoints": [],
+                "ulimits": [],
+                "exitCode": 1,
+                "taskArn": "arn:aws:ecs:eu-central-1:120569615884:task/sanders-batch-compute-dev_Batch_dae7529d-8f08-3279-9df2-8e1b67b585a9/77e240e5acca41f1a102b5926383d6f4",
+                "logStreamName": "sanders-job-8g-dev/default/77e240e5acca41f1a102b5926383d6f4",
+                "networkInterfaces": [
+                    {
+                        "attachmentId": "60b10440-3292-4e19-b025-43794046ceca",
+                        "privateIpv4Address": "10.0.2.38"
+                    }
+                ],
+                "resourceRequirements": [
+                    {
+                        "value": "2",
+                        "type": "VCPU"
+                    },
+                    {
+                        "value": "8192",
+                        "type": "MEMORY"
+                    }
+                ],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {},
+                    "secretOptions": []
+                },
+                "secrets": [],
+                "fargatePlatformConfiguration": {
+                    "platformVersion": "LATEST"
+                }
+            },
+            "tags": {},
+            "propagateTags": false,
+            "platformCapabilities": [
+                "FARGATE"
+            ],
+            "eksAttempts": []
+        }
+    ]
+}
