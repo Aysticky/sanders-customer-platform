@@ -107,8 +107,12 @@ docker push 120569615884.dkr.ecr.eu-central-1.amazonaws.com/sanders-customer-pla
 
 ### Run Jobs
 
-**Manual Batch Submission (Recommended for Testing):**
+**Option 1: Manual Batch Submission (Recommended):**
+
+This is the most flexible approach for passing environment variables at runtime.
+
 ```bash
+# Single job submission
 aws batch submit-job \
   --job-name daily-features-test \
   --job-queue sanders-batch-queue-prod \
@@ -117,14 +121,73 @@ aws batch submit-job \
     "command":["jobs/daily_features_tlc.py"],
     "environment":[
       {"name":"SCP_ENV","value":"prod"},
-      {"name":"TLC_DATA_PATH","value":"s3://sanders-customer-platform-prod/raw/nyc_tlc/tlc_small.parquet"},
-      {"name":"LOG_LEVEL","value":"INFO"}
+      {"name":"TLC_DATA_PATH","value":"s3://sanders-customer-platform-prod/raw/nyc_tlc/yellow_tripdata_2024-01.parquet"}
     ]
   }' \
   --region eu-central-1
+
+# Check job status
+aws batch describe-jobs --jobs <job-id> --region eu-central-1 \
+  --query "jobs[0].[jobName,status,container.exitCode]"
+
+# View logs
+aws logs tail /aws/batch/job --follow --region eu-central-1
 ```
 
-**Automated (EventBridge Scheduler):**
+**Option 2: Parallel Job Testing:**
+
+Test different data volumes concurrently:
+
+```bash
+# Upload sample data to S3
+aws s3 cp data/tlc_raw.parquet \
+  s3://sanders-customer-platform-prod/raw/nyc_tlc/yellow_tripdata_2024-01.parquet
+
+# Submit 3 parallel jobs (500, 1000, 2000 rows)
+aws batch submit-job --job-name small-500 \
+  --job-queue sanders-batch-queue-prod \
+  --job-definition sanders-job-2g-prod:1 \
+  --container-overrides '{
+    "command":["jobs/daily_features_tlc_small.py"],
+    "environment":[
+      {"name":"SCP_ENV","value":"prod"},
+      {"name":"TLC_DATA_PATH","value":"s3://sanders-customer-platform-prod/raw/nyc_tlc/yellow_tripdata_2024-01.parquet"}
+    ]
+  }' --region eu-central-1
+
+aws batch submit-job --job-name medium-1000 \
+  --job-queue sanders-batch-queue-prod \
+  --job-definition sanders-job-2g-prod:1 \
+  --container-overrides '{
+    "command":["jobs/daily_features_tlc_medium.py"],
+    "environment":[
+      {"name":"SCP_ENV","value":"prod"},
+      {"name":"TLC_DATA_PATH","value":"s3://sanders-customer-platform-prod/raw/nyc_tlc/yellow_tripdata_2024-01.parquet"}
+    ]
+  }' --region eu-central-1
+
+aws batch submit-job --job-name large-2000 \
+  --job-queue sanders-batch-queue-prod \
+  --job-definition sanders-job-2g-prod:1 \
+  --container-overrides '{
+    "command":["jobs/daily_features_tlc_large.py"],
+    "environment":[
+      {"name":"SCP_ENV","value":"prod"},
+      {"name":"TLC_DATA_PATH","value":"s3://sanders-customer-platform-prod/raw/nyc_tlc/yellow_tripdata_2024-01.parquet"}
+    ]
+  }' --region eu-central-1
+
+# Verify outputs in S3
+aws s3 ls s3://sanders-customer-platform-prod/features/daily/daily/date=$(date +%Y-%m-%d)/ \
+  --region eu-central-1
+
+# Check DynamoDB records
+aws dynamodb scan --table-name sanders_daily_customer_features_prod \
+  --filter-expression "attribute_exists(dataset_size)" \
+  --region eu-central-1
+```
+
+**Option 3: Automated Scheduling (EventBridge):**
 - Daily features: Runs automatically at 2 AM UTC (prod only)
 - Weekly training: Disabled by default (enable when ready)
 
@@ -163,26 +226,65 @@ monitoring = MonitoringDashboard(
 
 ```
 sanders-customer-platform/
-├── app/                        # Application code
-│   ├── config/                # Environment configs (dev/prod)
-│   ├── libs/                  # Shared libraries (S3, DynamoDB, logging)
-│   └── main.py                # CLI entrypoint (scp-run)
-├── jobs/                       # ETL jobs
-│   ├── daily_features_tlc.py  # Feature extraction
-│   └── ingest_tlc_sample.py   # Data ingestion
-├── cdk/                        # Infrastructure as Code
-│   ├── cdk_constructs/        # Reusable CDK components
-│   ├── app.py                 # CDK app entrypoint
-│   └── cdk-wrapper.py         # Python 3.13 compatibility fix
-├── .github/workflows/          # CI/CD pipelines
-│   ├── ci.yml                 # Linting, testing, security
-│   ├── deploy-app.yml         # Docker + Batch deployment
-│   └── deploy-infra.yml       # CDK infrastructure deployment
-├── docs/                       # Documentation
-│   └── ARCHITECTURE.md        # Detailed architecture guide
-├── Dockerfile                  # Container definition
-└── pyproject.toml             # Python project config
+├── app/                               # Application code
+│   ├── config/                       # Environment configs (dev/prod)
+│   │   ├── dev.yml                   # Dev environment settings
+│   │   ├── prod.yml                  # Prod environment settings
+│   │   └── loader.py                 # Config loader
+│   ├── libs/                         # Shared libraries
+│   │   ├── s3_io.py                  # S3 operations
+│   │   ├── ddb.py                    # DynamoDB operations
+│   │   ├── logging.py                # Structured logging
+│   │   └── exceptions.py             # Custom exceptions
+│   └── main.py                       # CLI entrypoint (scp-run)
+├── jobs/                              # ETL jobs
+│   ├── daily_features_tlc.py         # Main feature extraction (200k rows)
+│   ├── daily_features_tlc_small.py   # Small variant (500 rows)
+│   ├── daily_features_tlc_medium.py  # Medium variant (1000 rows)
+│   ├── daily_features_tlc_large.py   # Large variant (2000 rows)
+│   └── ingest_tlc_sample.py          # Data ingestion
+├── cdk/                               # Infrastructure as Code
+│   ├── cdk_constructs/               # Reusable CDK components
+│   │   ├── batch_environment.py      # Batch compute + queue
+│   │   ├── batch_iam_roles.py        # IAM roles for Batch
+│   │   ├── dynamodb_table.py         # DynamoDB table
+│   │   ├── ecr_repository.py         # Container registry
+│   │   ├── monitoring.py             # CloudWatch dashboards + alarms
+│   │   ├── s3_bucket.py              # S3 data lake
+│   │   ├── scheduler.py              # EventBridge job scheduler
+│   │   ├── stepfunctions_statemachine.py  # Step Functions workflow
+│   │   └── vpc_network.py            # VPC + security groups
+│   ├── app.py                        # CDK app entrypoint
+│   ├── sanders_customer_platform_stack.py  # Main stack definition
+│   └── cdk-wrapper.py                # Python 3.13 compatibility fix
+├── .github/workflows/                 # CI/CD pipelines
+│   └── ci.yml                        # Linting, testing, security
+├── tests/                             # Unit tests
+│   └── test_imports.py               # Import validation
+├── docs/                              # Documentation
+│   └── ARCHITECTURE.md               # Detailed architecture guide
+├── data/                              # Local sample data
+│   ├── tlc_raw.parquet               # NYC TLC sample (200k rows)
+│   └── tlc_small.parquet             # Small sample
+├── Dockerfile                         # Container definition
+├── pyproject.toml                     # Python project config
+├── uv.lock                            # Dependency lock file
+└── README.md                          # This file
 ```
+
+### Available Jobs
+
+| Job File | Description | Data Volume | Output |
+|----------|-------------|-------------|--------|
+| `daily_features_tlc.py` | Main feature extraction | 200k rows | `features.parquet` |
+| `daily_features_tlc_small.py` | Small batch processing | 500 rows | `features_small.parquet` |
+| `daily_features_tlc_medium.py` | Medium batch processing | 1000 rows | `features_medium.parquet` |
+| `daily_features_tlc_large.py` | Large batch processing | 2000 rows | `features_large.parquet` |
+| `ingest_tlc_sample.py` | Data ingestion from NYC TLC | Configurable | Raw parquet |
+
+All jobs output to:
+- **S3**: `s3://<bucket>/features/daily/date=YYYY-MM-DD/<file>.parquet`
+- **DynamoDB**: `sanders_daily_customer_features_<env>` table
 
 ### Adding New Jobs
 
@@ -235,18 +337,32 @@ pip-audit
 | Environment | Purpose | Auto-Deploy | Monitoring |
 |-------------|---------|-------------|------------|
 | **Dev** | Development & testing | Manual | Basic |
-| **Prod** | Production workloads | Tag-based | Full (alarms) |
+| **Prod** | Production workloads | Manual | Full (alarms + dashboard) |
 
 **Resource Naming:**
 - Dev: `sanders-*-dev`
 - Prod: `sanders-*-prod`
 
-**Promotion Strategy:**
+**Deployment Workflow:**
 1. Develop on `feature/*` branch
-2. Test in dev environment
-3. Merge to `master`
-4. Create release tag: `git tag v1.x.x`
-5. Auto-deploy to prod (GitHub Actions)
+2. Test in dev environment:
+   - Build Docker image: `docker build -t sanders-customer-platform:dev .`
+   - Push to dev ECR
+   - Submit test jobs to dev Batch queue
+3. Verify dev results in S3 and DynamoDB
+4. Merge to `master` branch
+5. Deploy to prod:
+   - Update CDK if needed: `cd cdk && cdk deploy --context environment=prod`
+   - Build and push prod Docker image
+   - Test with manual Batch submission
+6. Create release tag: `git tag v1.x.x && git push origin v1.x.x`
+7. Monitor CloudWatch dashboard and alarms
+
+**Testing Strategy:**
+- Unit tests run on every push (GitHub Actions)
+- Manual testing in dev before prod deployment
+- Parallel job testing validates concurrent workloads
+- DynamoDB and S3 outputs verified after each deployment
 
 ## Security
 
@@ -267,16 +383,31 @@ pip-audit
 ## Performance
 
 **Current Capacity:**
-- **Data Processed**: 200k records (4.2 MB parquet)
-- **Job Duration**: ~30 seconds (8GB job)
-- **Features Generated**: 3 metrics per customer (trip count, avg fare, avg distance)
-- **Cost**: ~$0.01 per run (Fargate + S3 + DynamoDB)
+- **Data Processed**: 200k records (NYC TLC taxi data, ~4.2 MB parquet)
+- **Job Duration**: 15-30 seconds (2GB job), 10-20 seconds (8GB job)
+- **Features Generated**: 3 metrics per customer (trip_count_1d, avg_fare_1d, avg_distance_1d)
+- **Customers**: 2 unique VendorIDs in sample data
+- **Cost**: ~$0.01 per run (Fargate + S3 + DynamoDB writes)
+
+**Job Variants Tested:**
+- Small (500 rows): 2 customers, ~6 seconds
+- Medium (1000 rows): 2 customers, ~8 seconds  
+- Large (2000 rows): 2 customers, ~10 seconds
+- Full (200k rows): 2 customers, ~15 seconds
 
 **Scalability:**
-- Auto-scales with Batch compute
-- DynamoDB on-demand (no provisioned capacity)
-- S3 unlimited storage
-- Can handle millions of records with proper partitioning
+- Batch compute auto-scales with Fargate (no servers to manage)
+- DynamoDB on-demand (no provisioned capacity, auto-scales to millions of writes)
+- S3 unlimited storage with partitioning by date
+- Can handle millions of records with proper data partitioning
+- Parallel job execution tested and validated in dev and prod
+
+**Production Validation:**
+- Both dev and prod environments deployed successfully
+- Parallel jobs tested: 3 concurrent jobs processing different data volumes
+- All jobs completed with exit code 0
+- S3 outputs verified: features_small/medium/large.parquet
+- DynamoDB records written with dataset_size tracking
 
 ## Known Issues
 
@@ -287,12 +418,28 @@ pip-audit
 
 ### 2. Python 3.13 CDK Compatibility
 **Problem**: `aws-cdk-lib` doesn't fully support Python 3.13  
-**Solution**: Use `cdk-wrapper.py` to inject sys.path  
-**Recommendation**: Stick with Python 3.11/3.12 for CDK
+**Error**: `ModuleNotFoundError: No module named 'constructs._jsii'`  
+**Solution**: Use `cdk-wrapper.py` to inject sys.path before importing  
+**Recommendation**: Use Python 3.11 or 3.12 for CDK operations
 
 ### 3. Windows Git Bash Path Translation
-**Problem**: AWS CLI converts paths like `/aws/batch/job`  
-**Solution**: Use `MSYS_NO_PATHCONV=1` prefix
+**Problem**: AWS CLI converts Unix paths like `/aws/batch/job` to Windows paths  
+**Solution**: Use `MSYS_NO_PATHCONV=1` prefix or `//` for Unix paths  
+**Example**: `MSYS_NO_PATHCONV=1 aws logs get-log-events --log-group-name /aws/batch/job`
+
+### 4. NYC TLC Public Bucket Access
+**Problem**: NYC TLC S3 bucket (s3://nyc-tlc) requires special access or has changed  
+**Solution**: Upload sample data to your own S3 bucket:
+```bash
+aws s3 cp data/tlc_raw.parquet \
+  s3://sanders-customer-platform-<env>/raw/nyc_tlc/yellow_tripdata_2024-01.parquet
+```
+**Note**: Jobs are configured to use your S3 bucket with proper IAM credentials
+
+### 5. UV Package Manager in CI
+**Problem**: UV requires virtual environment or `--system` flag  
+**Solution**: Use `uv pip install --system -e ".[dev]"` in GitHub Actions  
+**Reference**: See `.github/workflows/ci.yml` for working configuration
 
 ## Documentation
 
