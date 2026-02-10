@@ -11,6 +11,8 @@ from cdk_constructs.vpc_network import VPCNetwork
 from cdk_constructs.batch_iam_roles import BatchIAMRoles
 from cdk_constructs.batch_environment import BatchEnvironment
 from cdk_constructs.stepfunctions_statemachine import StepFunctionsStateMachine
+from cdk_constructs.monitoring import MonitoringDashboard
+from cdk_constructs.scheduler import JobScheduler
 
 
 class SandersCustomerPlatformStack(Stack):
@@ -153,4 +155,42 @@ class SandersCustomerPlatformStack(Stack):
             value=stepfunctions.state_machine_name,
             description="Step Functions State Machine Name",
             export_name=f"sanders-stepfunctions-name-{environment}"
+        )
+
+        # 7. Create Monitoring Dashboard and Alarms
+        monitoring = MonitoringDashboard(
+            self,
+            "Monitoring",
+            environment=environment,
+            job_queue_name=batch_environment.queue_name,
+            dynamodb_table_name=dynamodb_table.table_name,
+            s3_bucket_name=s3_bucket.bucket_name,
+            state_machine_name=stepfunctions.state_machine_name,
+            alarm_email=None  # Set to your email for production alerts
+        )
+
+        # 8. Create Job Scheduler (EventBridge)
+        scheduler = JobScheduler(
+            self,
+            "Scheduler",
+            environment=environment,
+            job_queue_arn=batch_environment.queue_arn,
+            job_definition_arn_8g=batch_environment.job_definitions['8g'].ref,
+            job_definition_arn_16g=batch_environment.job_definitions['16g'].ref,
+            s3_bucket_name=s3_bucket.bucket_name
+        )
+
+        CfnOutput(
+            self,
+            "MonitoringDashboard",
+            value=f"https://console.aws.amazon.com/cloudwatch/home?region={self.region}#dashboards:name=sanders-platform-{environment}",
+            description="CloudWatch Dashboard URL"
+        )
+
+        CfnOutput(
+            self,
+            "AlarmTopicARN",
+            value=monitoring.topic_arn,
+            description="SNS Topic ARN for alarms",
+            export_name=f"sanders-alarm-topic-{environment}"
         )
