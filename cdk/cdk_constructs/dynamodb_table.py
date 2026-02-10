@@ -1,8 +1,5 @@
-from aws_cdk import (
-    aws_dynamodb as dynamodb,
-    RemovalPolicy,
-    Tags
-)
+from aws_cdk import RemovalPolicy, Tags
+from aws_cdk import aws_dynamodb as dynamodb
 from constructs import Construct
 
 
@@ -26,7 +23,7 @@ class DynamoDBTable(Construct):
         # Create DynamoDB table
         self.table = dynamodb.Table(
             self,
-            f"Table",
+            "Table",
             table_name=table_name,
             partition_key=dynamodb.Attribute(
                 name=partition_key,

@@ -1,6 +1,7 @@
 import logging
 import os
 
+
 def get_logger(name: str) -> logging.Logger:
     """
     Creates and configures a logger instance with the specified name.

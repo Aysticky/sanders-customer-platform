@@ -6,11 +6,12 @@ import logging
 import os
 from datetime import datetime
 from decimal import Decimal
+
 import duckdb
 
 from app.config.loader import load_config
-from app.libs.s3_io import put_bytes
 from app.libs.ddb import upsert_daily_features
+from app.libs.s3_io import put_bytes
 
 # Configure logging
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

@@ -5,8 +5,8 @@ import os
 import sys
 from pathlib import Path
 
-from app.libs.logging import get_logger
 from app.libs.exceptions import NoWorkFound
+from app.libs.logging import get_logger
 
 log = get_logger(__name__)
 

@@ -2,14 +2,12 @@
 EventBridge Scheduler Construct
 Automates recurring job execution for Sanders Customer Platform
 """
-from aws_cdk import (
-    aws_events as events,
-    aws_events_targets as targets,
-    aws_iam as iam,
-    Tags
-)
+
+from aws_cdk import Tags
+from aws_cdk import aws_events as events
+from aws_cdk import aws_events_targets as targets
+from aws_cdk import aws_iam as iam
 from constructs import Construct
-import json
 
 
 class JobScheduler(Construct):
@@ -73,7 +71,7 @@ class JobScheduler(Construct):
                 job_queue_scope=None,
                 job_definition_arn=job_definition_arn_8g,
                 job_definition_scope=None,
-                job_name=f"daily-features-scheduled",
+                job_name="daily-features-scheduled",
                 event=events.RuleTargetInput.from_object({
                     "command": ["jobs/daily_features_tlc.py"],
                     "environment": [
@@ -110,7 +108,7 @@ class JobScheduler(Construct):
                 job_queue_scope=None,
                 job_definition_arn=job_definition_arn_16g,
                 job_definition_scope=None,
-                job_name=f"weekly-training-scheduled",
+                job_name="weekly-training-scheduled",
                 event=events.RuleTargetInput.from_object({
                     "command": ["jobs/daily_features_tlc.py"],  # Placeholder
                     "environment": [

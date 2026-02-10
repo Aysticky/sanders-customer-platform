@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+
 import aws_cdk as cdk
 from sanders_customer_platform_stack import SandersCustomerPlatformStack
 

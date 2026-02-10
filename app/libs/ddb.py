@@ -1,7 +1,9 @@
 # Upserts (inserts or updates) daily feature records into a DynamoDB table.
 
 import boto3
+
 from app.config.loader import load_config
+
 
 def ddb_resource():
     cfg = load_config()

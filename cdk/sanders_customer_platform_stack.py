@@ -1,18 +1,14 @@
-from aws_cdk import (
-    Stack,
-    CfnOutput,
-    Tags
-)
-from constructs import Construct
-from cdk_constructs.s3_bucket import S3Bucket
+from aws_cdk import CfnOutput, Stack, Tags
+from cdk_constructs.batch_environment import BatchEnvironment
+from cdk_constructs.batch_iam_roles import BatchIAMRoles
 from cdk_constructs.dynamodb_table import DynamoDBTable
 from cdk_constructs.ecr_repository import ECRRepository
-from cdk_constructs.vpc_network import VPCNetwork
-from cdk_constructs.batch_iam_roles import BatchIAMRoles
-from cdk_constructs.batch_environment import BatchEnvironment
-from cdk_constructs.stepfunctions_statemachine import StepFunctionsStateMachine
 from cdk_constructs.monitoring import MonitoringDashboard
+from cdk_constructs.s3_bucket import S3Bucket
 from cdk_constructs.scheduler import JobScheduler
+from cdk_constructs.stepfunctions_statemachine import StepFunctionsStateMachine
+from cdk_constructs.vpc_network import VPCNetwork
+from constructs import Construct
 
 
 class SandersCustomerPlatformStack(Stack):
@@ -170,7 +166,7 @@ class SandersCustomerPlatformStack(Stack):
         )
 
         # 8. Create Job Scheduler (EventBridge)
-        scheduler = JobScheduler(
+        _scheduler = JobScheduler(
             self,
             "Scheduler",
             environment=environment,

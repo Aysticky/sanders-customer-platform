@@ -1,7 +1,9 @@
 # Real data jobs (NYC TLC) using DuckDB + S3
 
 import boto3
+
 from app.config.loader import load_config
+
 
 def s3_client():
     cfg = load_config()

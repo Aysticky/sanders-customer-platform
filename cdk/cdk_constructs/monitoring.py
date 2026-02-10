@@ -2,13 +2,10 @@
 CloudWatch Monitoring Construct
 Creates dashboards and alarms for Sanders Customer Platform
 """
-from aws_cdk import (
-    aws_cloudwatch as cw,
-    aws_sns as sns,
-    aws_cloudwatch_actions as cw_actions,
-    Duration,
-    Tags
-)
+from aws_cdk import Duration, Tags
+from aws_cdk import aws_cloudwatch as cw
+from aws_cdk import aws_cloudwatch_actions as cw_actions
+from aws_cdk import aws_sns as sns
 from constructs import Construct
 
 

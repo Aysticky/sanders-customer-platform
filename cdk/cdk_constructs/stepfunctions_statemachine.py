@@ -1,12 +1,9 @@
-from aws_cdk import (
-    aws_stepfunctions as sfn,
-    aws_stepfunctions_tasks as tasks,
-    aws_iam as iam,
-    Duration,
-    Tags
-)
+
+from aws_cdk import Duration, Tags
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_stepfunctions as sfn
+from aws_cdk import aws_stepfunctions_tasks as tasks
 from constructs import Construct
-import json
 
 
 class StepFunctionsStateMachine(Construct):
@@ -29,7 +26,7 @@ class StepFunctionsStateMachine(Construct):
         # Create IAM role for Step Functions
         self.state_machine_role = iam.Role(
             self,
-            f"StateMachineRole",
+            "StateMachineRole",
             role_name=f"sanders-stepfunctions-role-{environment}",
             assumed_by=iam.ServicePrincipal("states.amazonaws.com"),
         )
@@ -138,7 +135,7 @@ class StepFunctionsStateMachine(Construct):
         # Create State Machine
         self.state_machine = sfn.StateMachine(
             self,
-            f"StateMachine",
+            "StateMachine",
             state_machine_name=f"sanders-orchestrator-{environment}",
             definition=definition,
             role=self.state_machine_role,

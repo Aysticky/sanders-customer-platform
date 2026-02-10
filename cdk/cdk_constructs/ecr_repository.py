@@ -1,8 +1,5 @@
-from aws_cdk import (
-    aws_ecr as ecr,
-    RemovalPolicy,
-    Tags
-)
+from aws_cdk import RemovalPolicy, Tags
+from aws_cdk import aws_ecr as ecr
 from constructs import Construct
 
 
@@ -24,7 +21,7 @@ class ECRRepository(Construct):
         # Create ECR repository
         self.repository = ecr.Repository(
             self,
-            f"Repository",
+            "Repository",
             repository_name=repository_name,
             image_scan_on_push=True,
             removal_policy=RemovalPolicy.RETAIN if environment == 'prod' else RemovalPolicy.DESTROY,

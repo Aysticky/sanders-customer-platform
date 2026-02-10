@@ -3,16 +3,16 @@
 
 import os
 import tempfile
-import duckdb
-import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
 from datetime import datetime
 from decimal import Decimal
 
+import duckdb
+import pyarrow as pa
+import pyarrow.parquet as pq
+
 from app.config.loader import load_config
-from app.libs.logging import get_logger
 from app.libs.ddb import upsert_daily_features
+from app.libs.logging import get_logger
 from app.libs.s3_io import put_file
 
 log = get_logger(__name__)

@@ -4,6 +4,7 @@
 
 import os
 import tempfile
+
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -33,7 +34,6 @@ def main():
     log.info("Ingesting TLC parquet from: %s", source_url)
 
     with tempfile.TemporaryDirectory() as td:
-        local_in = f"{td}/tlc.parquet"
         local_out = f"{td}/tlc_small.parquet"
 
         # read a small slice to keep everything lightweight

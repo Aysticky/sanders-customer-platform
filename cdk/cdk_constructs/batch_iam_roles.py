@@ -1,7 +1,5 @@
-from aws_cdk import (
-    aws_iam as iam,
-    Tags
-)
+from aws_cdk import Tags
+from aws_cdk import aws_iam as iam
 from constructs import Construct
 
 
@@ -25,7 +23,7 @@ class BatchIAMRoles(Construct):
         # Batch Service Role
         self.batch_service_role = iam.Role(
             self,
-            f"BatchServiceRole",
+            "BatchServiceRole",
             role_name=f"sanders-batch-service-role-{environment}",
             assumed_by=iam.ServicePrincipal("batch.amazonaws.com"),
             managed_policies=[
@@ -38,7 +36,7 @@ class BatchIAMRoles(Construct):
         # ECS Task Execution Role (for pulling images from ECR)
         self.ecs_task_execution_role = iam.Role(
             self,
-            f"EcsTaskExecutionRole",
+            "EcsTaskExecutionRole",
             role_name=f"sanders-ecs-task-execution-role-{environment}",
             assumed_by=iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
             managed_policies=[
@@ -51,7 +49,7 @@ class BatchIAMRoles(Construct):
         # Batch Job Role (for actual job execution with S3/DynamoDB access)
         self.batch_job_role = iam.Role(
             self,
-            f"BatchJobRole",
+            "BatchJobRole",
             role_name=f"sanders-batch-job-role-{environment}",
             assumed_by=iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
         )

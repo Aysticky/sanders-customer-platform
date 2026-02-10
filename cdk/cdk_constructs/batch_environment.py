@@ -1,11 +1,7 @@
-from aws_cdk import (
-    aws_batch as batch,
-    aws_ec2 as ec2,
-    aws_ecs as ecs,
-    Tags
-)
+from aws_cdk import Tags
+from aws_cdk import aws_batch as batch
+from aws_cdk import aws_ec2 as ec2
 from constructs import Construct
-from typing import List
 
 
 class BatchEnvironment(Construct):
@@ -32,7 +28,7 @@ class BatchEnvironment(Construct):
         # Create Batch Compute Environment
         self.compute_environment = batch.CfnComputeEnvironment(
             self,
-            f"ComputeEnvironment",
+            "ComputeEnvironment",
             compute_environment_name=f"sanders-batch-compute-{environment}",
             type="MANAGED",
             state="ENABLED",
@@ -48,7 +44,7 @@ class BatchEnvironment(Construct):
         # Create Job Queue
         self.job_queue = batch.CfnJobQueue(
             self,
-            f"JobQueue",
+            "JobQueue",
             job_queue_name=f"sanders-batch-queue-{environment}",
             priority=1,
             state="ENABLED",

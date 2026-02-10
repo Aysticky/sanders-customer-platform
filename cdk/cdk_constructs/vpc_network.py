@@ -1,7 +1,5 @@
-from aws_cdk import (
-    aws_ec2 as ec2,
-    Tags
-)
+from aws_cdk import Tags
+from aws_cdk import aws_ec2 as ec2
 from constructs import Construct
 
 
@@ -24,7 +22,7 @@ class VPCNetwork(Construct):
         # Using explicit AZ count without querying AWS to avoid permission requirements
         self.vpc = ec2.Vpc(
             self,
-            f"VPC",
+            "VPC",
             vpc_name=f"sanders-customer-platform-vpc-{environment}",
             max_azs=2,  # Use 2 availability zones
             nat_gateways=1,  # 1 NAT gateway for cost optimization
@@ -46,7 +44,7 @@ class VPCNetwork(Construct):
         # Security group for Batch compute
         self.batch_security_group = ec2.SecurityGroup(
             self,
-            f"BatchSecurityGroup",
+            "BatchSecurityGroup",
             vpc=self.vpc,
             description="Security group for AWS Batch compute environment",
             security_group_name=f"sanders-batch-sg-{environment}",

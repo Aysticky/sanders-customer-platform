@@ -1,8 +1,5 @@
-from aws_cdk import (
-    aws_s3 as s3,
-    RemovalPolicy,
-    Tags
-)
+from aws_cdk import RemovalPolicy, Tags
+from aws_cdk import aws_s3 as s3
 from constructs import Construct
 
 
@@ -24,7 +21,7 @@ class S3Bucket(Construct):
         # Create S3 bucket
         self.bucket = s3.Bucket(
             self,
-            f"Bucket",
+            "Bucket",
             bucket_name=bucket_name,
             versioned=True,
             encryption=s3.BucketEncryption.S3_MANAGED,
