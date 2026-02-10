@@ -1,0 +1,13 @@
+# Staging environment configuration for Sanders Customer Platform
+# This configuration file defines AWS resource settings for the staging environment
+
+# Staging serves as a pre-production environment for validation before prod deployment
+
+aws_region: eu-central-1
+s3_bucket: sanders-customer-platform-stg
+s3_prefix_raw: raw/nyc_tlc
+s3_prefix_features: features/daily
+ddb_table_daily_features: sanders_daily_customer_features_stg
+
+# Staging should mirror production configuration but with separate resources
+# Use for testing deployment processes, data validation, and integration testing

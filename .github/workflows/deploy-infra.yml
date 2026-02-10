@@ -1,0 +1,68 @@
+name: Deploy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+  push:
+    branches:
+      - main
+    paths:
+      - 'cdk/**'
+      - 'app/config/**'
+      - '.github/workflows/deploy-infra.yml'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-infrastructure:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install CDK dependencies
+        run: |
+          cd cdk
+          pip install -r requirements-cdk.txt
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: eu-central-1
+
+      - name: CDK Synth
+        run: |
+          cd cdk
+          cdk synth --context environment=${{ github.event.inputs.environment || 'dev' }}
+
+      - name: CDK Deploy
+        run: |
+          cd cdk
+          cdk deploy --context environment=${{ github.event.inputs.environment || 'dev' }} --require-approval never
+
+      - name: Output Stack Information
+        run: |
+          echo "### Infrastructure Deployed ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'dev' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** eu-central-1" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Stack outputs available in AWS CloudFormation console" >> $GITHUB_STEP_SUMMARY

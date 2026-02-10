@@ -59,6 +59,12 @@ htmlcov/
 .env
 .env.local
 
+# CDK
+cdk.out/
+.cdk.staging/
+cdk.context.json
+
 # Reference materials (not part of project)
 chatgptHistory.txt
 README_sanders-customer-platform-cdk-infra.md
+sanders-customer-platform-cdk-infra/

@@ -1,0 +1,18 @@
+# Production environment configuration for Sanders Customer Platform
+# This configuration file defines AWS resource settings for the prod environment
+
+# IMPORTANT: Production resources should be created via CDK/Terraform
+# with appropriate naming conventions and tags
+
+aws_region: eu-central-1
+s3_bucket: sanders-customer-platform-prod
+s3_prefix_raw: raw/nyc_tlc
+s3_prefix_features: features/daily
+ddb_table_daily_features: sanders_daily_customer_features_prod
+
+# Production-specific considerations:
+# - Enable S3 versioning and lifecycle policies
+# - Configure DynamoDB autoscaling
+# - Enable CloudWatch alarms and monitoring
+# - Set up proper IAM roles with least privilege
+# - Enable CloudTrail logging for audit
