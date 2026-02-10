@@ -78,30 +78,6 @@ class StepFunctionsStateMachine(Construct):
         )
 
         # Job 2: Data processing with 2GB
-        job_2 = tasks.BatchSubmitJob(
-            self,
-            "DataProcessingJob",
-            job_name="data-processing",
-            job_queue_arn=job_queue_arn,
-            job_definition_arn=job_definitions['2g'].ref,
-            container_overrides=tasks.BatchContainerOverrides(
-                command=sfn.JsonPath.list_at("$.command")
-            ),
-            result_path="$.processingJob"
-        )
-
-        # Job 3: Model training with 16GB (runs after feature extraction)
-        job_3 = tasks.BatchSubmitJob(
-            self,
-            "ModelTrainingJob",
-            job_name="model-training",
-            job_queue_arn=job_queue_arn,
-            job_definition_arn=job_definitions['16g'].ref,
-            container_overrides=tasks.BatchContainerOverrides(
-                command=sfn.JsonPath.list_at("$.command")
-            ),
-            result_path="$.trainingJob"
-        )
 
         # Success state
         succeed = sfn.Succeed(
