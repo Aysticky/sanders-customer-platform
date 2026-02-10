@@ -68,3 +68,4 @@ cdk.context.json
 chatgptHistory.txt
 README_sanders-customer-platform-cdk-infra.md
 sanders-customer-platform-cdk-infra/
+intelligence-batch/

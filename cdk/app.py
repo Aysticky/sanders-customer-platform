@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import aws_cdk as cdk
-from cdk.sanders_customer_platform_stack import SandersCustomerPlatformStack
+from sanders_customer_platform_stack import SandersCustomerPlatformStack
 
 app = cdk.App()
 

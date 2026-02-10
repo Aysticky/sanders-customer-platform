@@ -1,5 +1,5 @@
 {
-  "app": ".venv\\Scripts\\python.exe app.py",
+  "app": "C:\\Users\\User\\Desktop\\Lab\\sanders\\sanders-customer-platform\\.venv\\Scripts\\python.exe cdk-wrapper.py",
   "watch": {
     "include": [
       "**"

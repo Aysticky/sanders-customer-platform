@@ -4,13 +4,13 @@ from aws_cdk import (
     Tags
 )
 from constructs import Construct
-from cdk.constructs.s3_bucket import S3Bucket
-from cdk.constructs.dynamodb_table import DynamoDBTable
-from cdk.constructs.ecr_repository import ECRRepository
-from cdk.constructs.vpc_network import VPCNetwork
-from cdk.constructs.batch_iam_roles import BatchIAMRoles
-from cdk.constructs.batch_environment import BatchEnvironment
-from cdk.constructs.stepfunctions_statemachine import StepFunctionsStateMachine
+from cdk_constructs.s3_bucket import S3Bucket
+from cdk_constructs.dynamodb_table import DynamoDBTable
+from cdk_constructs.ecr_repository import ECRRepository
+from cdk_constructs.vpc_network import VPCNetwork
+from cdk_constructs.batch_iam_roles import BatchIAMRoles
+from cdk_constructs.batch_environment import BatchEnvironment
+from cdk_constructs.stepfunctions_statemachine import StepFunctionsStateMachine
 
 
 class SandersCustomerPlatformStack(Stack):
