@@ -45,7 +45,7 @@ def main():
         con.execute("INSTALL httpfs;")
         con.execute("LOAD httpfs;")
         # Configure AWS credentials - DuckDB uses boto3 credentials automatically
-        con.execute(f"SET s3_region='{cfg.aws_region}';")
+        con.execute("SET s3_region='us-east-1';")  # NYC TLC bucket is in us-east-1
         con.execute("SET s3_use_ssl=true;")
         # Let DuckDB use AWS credential chain (IAM role, env vars, etc.)
         con.execute("CALL load_aws_credentials();")
