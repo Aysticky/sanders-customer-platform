@@ -62,6 +62,7 @@ class StepFunctionsStateMachine(Construct):
 
         # Define a simple parallel job execution workflow
         # Jobs accept command from input: $.command (array of strings)
+        # Environment variables must be defined in job definition or passed separately
         # Example input: {"command": ["jobs/daily_features_tlc.py"]}
         
         # Job 1: Feature extraction with 8GB
@@ -78,6 +79,30 @@ class StepFunctionsStateMachine(Construct):
         )
 
         # Job 2: Data processing with 2GB
+        job_2 = tasks.BatchSubmitJob(
+            self,
+            "DataProcessingJob",
+            job_name="data-processing",
+            job_queue_arn=job_queue_arn,
+            job_definition_arn=job_definitions['2g'].ref,
+            container_overrides=tasks.BatchContainerOverrides(
+                command=sfn.JsonPath.list_at("$.command")
+            ),
+            result_path="$.processingJob"
+        )
+
+        # Job 3: Model training with 16GB
+        job_3 = tasks.BatchSubmitJob(
+            self,
+            "ModelTrainingJob",
+            job_name="model-training",
+            job_queue_arn=job_queue_arn,
+            job_definition_arn=job_definitions['16g'].ref,
+            container_overrides=tasks.BatchContainerOverrides(
+                command=sfn.JsonPath.list_at("$.command")
+            ),
+            result_path="$.trainingJob"
+        )
 
         # Success state
         succeed = sfn.Succeed(
